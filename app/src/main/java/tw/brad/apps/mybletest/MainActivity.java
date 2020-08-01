@@ -16,11 +16,15 @@ import com.inuker.bluetooth.library.connect.listener.BleConnectStatusListener;
 import com.inuker.bluetooth.library.connect.listener.BluetoothStateListener;
 import com.inuker.bluetooth.library.connect.options.BleConnectOptions;
 import com.inuker.bluetooth.library.connect.response.BleConnectResponse;
+import com.inuker.bluetooth.library.connect.response.BleNotifyResponse;
 import com.inuker.bluetooth.library.model.BleGattProfile;
 import com.inuker.bluetooth.library.search.SearchRequest;
 import com.inuker.bluetooth.library.search.SearchResult;
 import com.inuker.bluetooth.library.search.response.SearchResponse;
 
+import java.util.UUID;
+
+import static com.inuker.bluetooth.library.Constants.REQUEST_SUCCESS;
 import static com.inuker.bluetooth.library.Constants.STATUS_CONNECTED;
 import static com.inuker.bluetooth.library.Constants.STATUS_DISCONNECTED;
 
@@ -55,6 +59,9 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+    private String cUUID = "00002a19-0000-1000-8000-00805f9b34fb";
+    private String sUUID = "0000180f-0000-1000-8000-00805f9b34fb";
     private BluetoothClient mClient;
     private SearchResult arix1;
     private boolean isBTOpen;
@@ -72,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.v("bradlog", "connected");
                 mesg.append("Connected\n");
                 isConnecting = true;
+                setNotify();
             } else if (status == STATUS_DISCONNECTED) {
                 Log.v("bradlog", "disconnected");
                 isConnecting = false;
@@ -148,6 +156,23 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(int code, BleGattProfile data) {
                 Log.v("bradlog", "connect response: "+ code);
+            }
+        });
+    }
+
+    private void setNotify(){
+        mClient.notify(arix1.getAddress(), UUID.fromString(sUUID),
+                UUID.fromString(cUUID), new BleNotifyResponse() {
+            @Override
+            public void onNotify(UUID service, UUID character, byte[] value) {
+                mesg.append(" ==> " + value[0] + "\n");
+            }
+
+            @Override
+            public void onResponse(int code) {
+                if (code == REQUEST_SUCCESS) {
+
+                }
             }
         });
     }
