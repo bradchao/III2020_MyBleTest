@@ -14,6 +14,12 @@
         android:text="Scan"
         android:onClick="scanDevices"
         />
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Connect"
+        android:onClick="connectDevices"
+        />
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"

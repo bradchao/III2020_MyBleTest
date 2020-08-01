@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.inuker.bluetooth.library.BluetoothClient;
+import com.inuker.bluetooth.library.connect.listener.BluetoothStateListener;
 import com.inuker.bluetooth.library.search.SearchRequest;
 import com.inuker.bluetooth.library.search.SearchResult;
 import com.inuker.bluetooth.library.search.response.SearchResponse;
@@ -49,11 +50,27 @@ public class MainActivity extends AppCompatActivity {
     }
     private BluetoothClient mClient;
     private SearchResult arix1;
+    private boolean isBTOpen;
+    private final BluetoothStateListener mBluetoothStateListener = new BluetoothStateListener() {
+        @Override
+        public void onBluetoothStateChanged(boolean openOrClosed) {
+            isBTOpen = openOrClosed;
+            Log.v("bradlog", "bt:" + isBTOpen);
+        }
+    };
 
+    private boolean isInitOpenBT;
     private void init(){
         mClient = new BluetoothClient(this);
+        mClient.registerBluetoothStateListener(mBluetoothStateListener);
+        if (!mClient.isBluetoothOpened()){
+            mClient.openBluetooth();
+        }else{
+            isInitOpenBT = true;
+        }
     }
     public void scanDevices(View view) {
+        if (!isBTOpen) return;;
         SearchRequest request = new SearchRequest.Builder()
                 .searchBluetoothLeDevice(3000, 3)   // 先扫BLE设备3次，每次3s
                 .searchBluetoothClassicDevice(5000) // 再扫经典蓝牙5s
@@ -87,5 +104,20 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    public void connectDevices(View view) {
+        if (arix1 == null) return;
+
+    }
+
+    @Override
+    public void finish() {
+        if (mBluetoothStateListener!= null){
+            mClient.unregisterBluetoothStateListener(mBluetoothStateListener);
+        }
+        if (!isInitOpenBT) mClient.closeBluetooth();
+
+        super.finish();
     }
 }
