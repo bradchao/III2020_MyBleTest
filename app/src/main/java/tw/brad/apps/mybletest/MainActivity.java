@@ -70,13 +70,18 @@ public class MainActivity extends AppCompatActivity {
         public void onConnectStatusChanged(String mac, int status) {
             if (status == STATUS_CONNECTED) {
                 Log.v("bradlog", "connected");
+                mesg.append("Connected\n");
+                isConnecting = true;
             } else if (status == STATUS_DISCONNECTED) {
                 Log.v("bradlog", "disconnected");
+                isConnecting = false;
+                mesg.append("disconnected\n");
             }
         }
     };
 
     private boolean isInitOpenBT;
+    private boolean isConnecting;
     private void init(){
         Log.v("bradlog", "init");
         mClient = new BluetoothClient(this);
@@ -155,5 +160,11 @@ public class MainActivity extends AppCompatActivity {
         if (!isInitOpenBT) mClient.closeBluetooth();
 
         super.finish();
+    }
+
+    public void disconnectDevices(View view) {
+        if (arix1!= null && isConnecting) {
+            mClient.disconnect(arix1.getAddress());
+        }
     }
 }

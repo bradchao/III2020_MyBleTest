@@ -20,6 +20,12 @@
         android:text="Connect"
         android:onClick="connectDevices"
         />
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Disconnect"
+        android:onClick="disconnectDevices"
+        />
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
