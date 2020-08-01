@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 
 import com.inuker.bluetooth.library.BluetoothClient;
 import com.inuker.bluetooth.library.search.SearchRequest;
@@ -16,11 +17,13 @@ import com.inuker.bluetooth.library.search.SearchResult;
 import com.inuker.bluetooth.library.search.response.SearchResponse;
 
 public class MainActivity extends AppCompatActivity {
+    private TextView mesg;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mesg = findViewById(R.id.mesg);
 
         if (ContextCompat.checkSelfPermission(
                 this, Manifest.permission.ACCESS_FINE_LOCATION) ==
@@ -45,6 +48,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     private BluetoothClient mClient;
+    private SearchResult arix1;
+
     private void init(){
         mClient = new BluetoothClient(this);
     }
@@ -64,7 +69,11 @@ public class MainActivity extends AppCompatActivity {
             public void onDeviceFounded(SearchResult device) {
                 String name = device.getName();
                 String mac = device.getAddress();
-                Log.v("bradlog", name + " => " + mac);
+                if (name.equals("ARIX1")){
+                    arix1 = device;
+                    mClient.stopSearch();
+                    mesg.append("Arix: Got It!\n");
+                }
             }
 
             @Override
