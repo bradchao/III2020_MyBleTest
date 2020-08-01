@@ -12,10 +12,17 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.inuker.bluetooth.library.BluetoothClient;
+import com.inuker.bluetooth.library.connect.listener.BleConnectStatusListener;
 import com.inuker.bluetooth.library.connect.listener.BluetoothStateListener;
+import com.inuker.bluetooth.library.connect.options.BleConnectOptions;
+import com.inuker.bluetooth.library.connect.response.BleConnectResponse;
+import com.inuker.bluetooth.library.model.BleGattProfile;
 import com.inuker.bluetooth.library.search.SearchRequest;
 import com.inuker.bluetooth.library.search.SearchResult;
 import com.inuker.bluetooth.library.search.response.SearchResponse;
+
+import static com.inuker.bluetooth.library.Constants.STATUS_CONNECTED;
+import static com.inuker.bluetooth.library.Constants.STATUS_DISCONNECTED;
 
 public class MainActivity extends AppCompatActivity {
     private TextView mesg;
@@ -58,19 +65,32 @@ public class MainActivity extends AppCompatActivity {
             Log.v("bradlog", "bt:" + isBTOpen);
         }
     };
+    private final BleConnectStatusListener mBleConnectStatusListener = new BleConnectStatusListener() {
+        @Override
+        public void onConnectStatusChanged(String mac, int status) {
+            if (status == STATUS_CONNECTED) {
+                Log.v("bradlog", "connected");
+            } else if (status == STATUS_DISCONNECTED) {
+                Log.v("bradlog", "disconnected");
+            }
+        }
+    };
 
     private boolean isInitOpenBT;
     private void init(){
+        Log.v("bradlog", "init");
         mClient = new BluetoothClient(this);
         mClient.registerBluetoothStateListener(mBluetoothStateListener);
         if (!mClient.isBluetoothOpened()){
             mClient.openBluetooth();
         }else{
             isInitOpenBT = true;
+            isBTOpen = true;
         }
     }
     public void scanDevices(View view) {
-        if (!isBTOpen) return;;
+        if (!isBTOpen) return;
+        Log.v("bradlog", "search");
         SearchRequest request = new SearchRequest.Builder()
                 .searchBluetoothLeDevice(3000, 3)   // 先扫BLE设备3次，每次3s
                 .searchBluetoothClassicDevice(5000) // 再扫经典蓝牙5s
@@ -84,8 +104,10 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onDeviceFounded(SearchResult device) {
+
                 String name = device.getName();
                 String mac = device.getAddress();
+                Log.v("bradlog", name +":" + mac);
                 if (name.equals("ARIX1")){
                     arix1 = device;
                     mClient.stopSearch();
@@ -108,7 +130,21 @@ public class MainActivity extends AppCompatActivity {
 
     public void connectDevices(View view) {
         if (arix1 == null) return;
+        BleConnectOptions options = new BleConnectOptions.Builder()
+                .setConnectRetry(3)   // 连接如果失败重试3次
+                .setConnectTimeout(30000)   // 连接超时30s
+                .setServiceDiscoverRetry(3)  // 发现服务如果失败重试3次
+                .setServiceDiscoverTimeout(20000)  // 发现服务超时20s
+                .build();
 
+        String mac = arix1.getAddress();
+        mClient.registerConnectStatusListener(mac, mBleConnectStatusListener);
+        mClient.connect(mac, options, new BleConnectResponse() {
+            @Override
+            public void onResponse(int code, BleGattProfile data) {
+                Log.v("bradlog", "connect response: "+ code);
+            }
+        });
     }
 
     @Override
